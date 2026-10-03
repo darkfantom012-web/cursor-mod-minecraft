@@ -98,3 +98,20 @@ jobs:
           name: BetterSprint-ALL
           path: jars/**/*.jar
           if-no-files-found: warn
+
+      - name: Flatten jars
+        run: |
+          mkdir -p release
+          find jars -name '*.jar' -exec cp {} release/ \;
+          ls -l release
+
+      - name: Publish release
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v1.0.0-${{ github.run_number }}"
+          gh release create "$TAG" release/*.jar \
+            --title "Better Sprint 1.0.0 (build ${{ github.run_number }})" \
+            --notes "Better Sprint by Bogdan_Tokarev. Client-side sprint acceleration mod. Jars for every supported loader/version are attached." \
+            --target ${{ github.sha }} || gh release upload "$TAG" release/*.jar --clobber
