@@ -110,8 +110,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -x
           TAG="v1.0.0-${{ github.run_number }}"
           gh release create "$TAG" release/*.jar \
             --title "Better Sprint 1.0.0 (build ${{ github.run_number }})" \
-            --notes "Better Sprint by Bogdan_Tokarev. Client-side sprint acceleration mod. Jars for every supported loader/version are attached." \
-            --target ${{ github.sha }} || gh release upload "$TAG" release/*.jar --clobber
+            --notes "Better Sprint by Bogdan_Tokarev. Client-side sprint acceleration mod." \
+            --target "${{ github.sha }}" 2>&1 | tee rel.log || true
+          python3 -c "import json;print(json.dumps({'body':'### bundle job\n```\n'+open('rel.log').read()[-5000:]+'\n```'}))" > c.json
+          gh api repos/${{ github.repository }}/issues/1/comments --input c.json || true
+          gh release view "$TAG" >/dev/null
