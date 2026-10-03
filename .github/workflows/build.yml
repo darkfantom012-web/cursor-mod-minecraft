@@ -53,13 +53,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         working-directory: versions/${{ matrix.target }}
         run: |
-          {
-            echo "### ${{ matrix.target }} failed (run ${{ github.run_id }})"
-            echo '```'
-            tail -c 12000 build.log || echo "no log"
-            echo '```'
-          } > comment.md
-          gh api repos/${{ github.repository }}/issues/1/comments -f body=@comment.md ||           gh issue create --title "Build logs" --body "log sink" || true
+          LOG=$(tail -c 9000 build.log 2>/dev/null || echo "no build.log")
+          printf '### %s failed (run %s)\n```\n%s\n```\n' "${{ matrix.target }}" "${{ github.run_id }}" "$LOG" > comment.md
+          python3 -c "import json,os;print(json.dumps({'body':open('comment.md').read()}))" > comment.json
+          gh api repos/${{ github.repository }}/issues/1/comments --input comment.json || true
 
       - name: Collect jar
         working-directory: versions/${{ matrix.target }}
