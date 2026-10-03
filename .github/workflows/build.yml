@@ -25,10 +25,10 @@ jobs:
           - { target: "1.21.1-forge",    java: "21",    gradle: "8.8",  experimental: false }
           - { target: "1.21.1-fabric",   java: "21",    gradle: "8.8",  experimental: false }
           - { target: "1.21.1-neoforge", java: "21",    gradle: "8.8",  neo: "21.1.", experimental: false }
-          - { target: "1.21.11-fabric",  java: "21",    gradle: "8.14.3", experimental: true }
+          - { target: "1.21.11-fabric",  java: "21\n25", gradle: "9.7.0", experimental: true }
           - { target: "1.21.11-neoforge",java: "21",    gradle: "8.14.3", neo: "21.11.", experimental: true }
-          - { target: "26.3-fabric",     java: "21\n25", gradle: "9.1.0", experimental: true }
-          - { target: "26.3-neoforge",   java: "21\n25", gradle: "9.1.0", neo: "26.3.", experimental: true }
+          - { target: "26.3-fabric",     java: "25",    gradle: "9.7.0", experimental: true }
+          - { target: "26.3-neoforge",   java: "25",    gradle: "9.7.0", neo: "26.3.", experimental: true }
 
     steps:
       - uses: actions/checkout@v4

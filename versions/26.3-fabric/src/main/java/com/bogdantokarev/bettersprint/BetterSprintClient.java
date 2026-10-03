@@ -30,7 +30,7 @@ public class BetterSprintClient implements ClientModInitializer {
     private static void tick(Minecraft mc) {
         LocalPlayer p = mc.player;
         if (p == null || mc.isPaused()) return;
-        if (p.getAbilities().flying || p.isInWater() || p.isPassenger() || p.isGliding()) {
+        if (p.getAbilities().flying || p.isInWater() || p.isPassenger() || p.isFallFlying()) {
             ENGINE.reset();
             return;
         }

@@ -30,7 +30,6 @@ import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.FMLCommonHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityClientPlayerMP;
-import net.minecraftforge.client.event.EntityViewRenderEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 
@@ -88,11 +87,6 @@ public class BetterSprint {
         Minecraft mc = Minecraft.getMinecraft();
         if (mc.thePlayer == null || event.entityPlayer != mc.thePlayer) return;
         ENGINE.onAttack(!mc.thePlayer.onGround);
-    }
-
-    @SubscribeEvent
-    public void onCamera(EntityViewRenderEvent.CameraSetup event) {
-        event.roll = (float) ENGINE.roll;
     }
 }
 """
@@ -656,7 +650,7 @@ jar {
 """
 
 BUILD_FABRIC = """plugins {
-    id 'fabric-loom' version '%(loom)s'
+    id '%(loomid)s' version '%(loom)s'
 }
 
 group = 'com.bogdantokarev'
@@ -675,9 +669,8 @@ repositories {
 
 dependencies {
     minecraft "com.mojang:minecraft:%(mc)s"
-    mappings loom.officialMojangMappings()
-    modImplementation "net.fabricmc:fabric-loader:%(loader)s"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:%(fapi)s"
+%(mappings)s    %(dep)s "net.fabricmc:fabric-loader:%(loader)s"
+    %(dep)s "net.fabricmc.fabric-api:fabric-api:%(fapi)s"
 }
 
 processResources {
@@ -732,16 +725,19 @@ def neoforge(name, neoforge_ver, java, mcrange, neorange, mdg="2.0.78", gliding=
     wb(d / "src/main/resources/icon.png", ICON)
     wb(d / "src/main/resources/assets/bettersprint/icon.png", ICON)
 
-def fabric(name, mc, yarn, loader, fapi, loom, java, mcdep, gliding="isFallFlying()"):
+def fabric(name, mc, yarn, loader, fapi, loom, java, mcdep, gliding="isFallFlying()", newloom=False, mixinjava=None):
     d = base_project(name)
     w(d / "src/main/java" / PKG / "BetterSprintClient.java", FABRIC_MAIN % {"movement": MOVEMENT_BODY, "gliding": gliding})
     w(d / "src/main/java" / PKG / "mixin/GameRendererMixin.java", FABRIC_MIXIN)
-    w(d / "build.gradle", BUILD_FABRIC % {"name": name, "version": MOD_VERSION, "mc": mc, "yarn": yarn,
-                                          "loader": loader, "fapi": fapi, "loom": loom,
-                                          "java": java, "author": AUTHOR})
+    w(d / "build.gradle", BUILD_FABRIC % {
+        "name": name, "version": MOD_VERSION, "mc": mc, "loader": loader, "fapi": fapi, "loom": loom,
+        "java": java, "author": AUTHOR,
+        "loomid": "net.fabricmc.fabric-loom" if newloom else "fabric-loom",
+        "dep": "implementation" if newloom else "modImplementation",
+        "mappings": "" if newloom else "    mappings loom.officialMojangMappings()\n"})
     w(d / "src/main/resources/fabric.mod.json", FABRIC_MOD_JSON % {
         "version": "${version}", "desc": DESC, "author": AUTHOR, "mcdep": mcdep, "java": java})
-    w(d / "src/main/resources/bettersprint.mixins.json", FABRIC_MIXINS_JSON % {"java": java})
+    w(d / "src/main/resources/bettersprint.mixins.json", FABRIC_MIXINS_JSON % {"java": mixinjava or java})
     wb(d / "src/main/resources/assets/bettersprint/icon.png", ICON)
 
 forge_modern("1.20.1-forge", "1.20.1", "1.20.1-47.3.0", 17, "[1.20.1,1.20.2)", "[47,)")
@@ -749,14 +745,14 @@ forge_modern("1.21.1-forge", "1.21.1", "1.21.1-52.0.40", 21, "[1.21.1,1.21.2)", 
 
 neoforge("1.21.1-neoforge", "21.1.+", 21, "[1.21.1,1.21.2)", "[21.1.0,)")
 neoforge("1.21.11-neoforge", "21.11.+", 21, "[1.21.11,1.21.12)", "[21.11.0,)",
-         mdg="[2.0,3.0)", gliding="isGliding()")
-neoforge("26.3-neoforge", "26.3.+", 21, "[26.3,)", "[26.3.0,)",
-         mdg="[2.0,3.0)", gliding="isGliding()")
+         mdg="[2.0,3.0)", gliding="isFallFlying()")
+neoforge("26.3-neoforge", "26.3.+", 25, "[26.3,)", "[26.3.0,)",
+         mdg="[2.0,3.0)", gliding="isFallFlying()")
 
 fabric("1.20.1-fabric", "1.20.1", None, "0.16.9", "0.92.2+1.20.1", "1.6-SNAPSHOT", 17, ">=1.20.1")
 fabric("1.21.1-fabric", "1.21.1", None, "0.16.9", "0.116.17+1.21.1", "1.7-SNAPSHOT", 21, ">=1.21.1")
-fabric("1.21.11-fabric", "1.21.11", None, "0.17.2", "0.141.6+1.21.11", "1.11-SNAPSHOT", 21, ">=1.21.11",
-       gliding="isGliding()")
-fabric("26.3-fabric", "26.3", None, "0.19.5", "0.161.0+26.3", "1.18-SNAPSHOT", 21, ">=26.3",
-       gliding="isGliding()")
+fabric("1.21.11-fabric", "1.21.11", None, "0.19.5", "0.141.6+1.21.11", "1.18-SNAPSHOT", 21, ">=1.21.11",
+       newloom=True)
+fabric("26.3-fabric", "26.3", None, "0.19.5", "0.161.0+26.3", "1.18-SNAPSHOT", 25, ">=26.3",
+       newloom=True, mixinjava=21)
 print("modern ok")

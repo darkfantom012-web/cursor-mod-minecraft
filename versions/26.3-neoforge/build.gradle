@@ -8,7 +8,7 @@ version = '1.0.0'
 base { archivesName = 'BetterSprint-26.3-neoforge' }
 
 java {
-    toolchain { languageVersion.set(JavaLanguageVersion.of(21)) }
+    toolchain { languageVersion.set(JavaLanguageVersion.of(25)) }
 }
 
 neoForge {

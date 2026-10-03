@@ -7,7 +7,6 @@ import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.FMLCommonHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityClientPlayerMP;
-import net.minecraftforge.client.event.EntityViewRenderEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 
@@ -65,10 +64,5 @@ public class BetterSprint {
         Minecraft mc = Minecraft.getMinecraft();
         if (mc.thePlayer == null || event.entityPlayer != mc.thePlayer) return;
         ENGINE.onAttack(!mc.thePlayer.onGround);
-    }
-
-    @SubscribeEvent
-    public void onCamera(EntityViewRenderEvent.CameraSetup event) {
-        event.roll = (float) ENGINE.roll;
     }
 }
