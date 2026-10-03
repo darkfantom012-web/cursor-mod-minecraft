@@ -832,8 +832,8 @@ neoforge("26.3-neoforge", "26.3.+", 25, "[26.3,)", "[26.3.0,)",
 
 fabric("1.20.1-fabric", "1.20.1", None, "0.16.9", "0.92.2+1.20.1", "1.6-SNAPSHOT", 17, ">=1.20.1")
 fabric("1.21.1-fabric", "1.21.1", None, "0.16.9", "0.116.17+1.21.1", "1.7-SNAPSHOT", 21, ">=1.21.1")
-fabric("1.21.11-fabric", "1.21.11", None, "0.19.5", None, "1.18-SNAPSHOT", 21, ">=1.21.11",
-       newloom=True, nofapi=True)
+fabric("1.21.11-fabric", "1.21.11", None, "0.17.2", None, "1.11-SNAPSHOT", 21, ">=1.21.11",
+       nofapi=True)
 fabric("26.3-fabric", "26.3", None, "0.19.5", "0.161.0+26.3", "1.18-SNAPSHOT", 25, ">=26.3",
        newloom=True, mixinjava=21, newroll=True)
 print("modern ok")
