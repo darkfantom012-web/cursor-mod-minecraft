@@ -2,7 +2,7 @@ package com.bogdantokarev.bettersprint.mixin;
 
 import com.bogdantokarev.bettersprint.BetterSprintClient;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
+import org.joml.Matrix4f;
 import net.minecraft.client.renderer.GameRenderer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -17,7 +17,7 @@ public class GameRendererMixin {
     private void bettersprint$roll(PoseStack poseStack, float partialTick, CallbackInfo ci) {
         double roll = BetterSprintClient.ENGINE.roll;
         if (roll != 0.0D) {
-            poseStack.mulPose(Axis.ZP.rotationDegrees((float) roll));
+            poseStack.mulPose(new Matrix4f().rotationZ((float) Math.toRadians(roll)));
         }
     }
 }

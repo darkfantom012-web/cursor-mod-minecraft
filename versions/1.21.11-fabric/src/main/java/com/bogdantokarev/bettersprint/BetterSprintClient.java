@@ -3,11 +3,8 @@ package com.bogdantokarev.bettersprint;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.phys.Vec3;
 
 @Environment(EnvType.CLIENT)
@@ -17,17 +14,9 @@ public class BetterSprintClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        ClientTickEvents.END_CLIENT_TICK.register(BetterSprintClient::tick);
-        AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
-            Minecraft mc = Minecraft.getInstance();
-            if (mc.player != null && player == mc.player) {
-                ENGINE.onAttack(!mc.player.onGround());
-            }
-            return InteractionResult.PASS;
-        });
     }
 
-    private static void tick(Minecraft mc) {
+    public static void tick(Minecraft mc) {
         LocalPlayer p = mc.player;
         if (p == null || mc.isPaused()) return;
         if (p.getAbilities().flying || p.isInWater() || p.isPassenger() || p.isFallFlying()) {

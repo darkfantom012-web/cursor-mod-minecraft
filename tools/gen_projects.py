@@ -459,11 +459,78 @@ public class BetterSprintClient implements ClientModInitializer {
 }
 """
 
+MIXIN_TICK = '''package com.bogdantokarev.bettersprint.mixin;
+
+import com.bogdantokarev.bettersprint.BetterSprintClient;
+import net.minecraft.client.Minecraft;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+@Mixin(Minecraft.class)
+public class MinecraftMixin {
+
+    @Inject(method = "tick", at = @At("TAIL"))
+    private void bettersprint$tick(CallbackInfo ci) {
+        BetterSprintClient.tick(Minecraft.getInstance());
+    }
+}
+'''
+MIXIN_ATTACK = '''package com.bogdantokarev.bettersprint.mixin;
+
+import com.bogdantokarev.bettersprint.BetterSprintClient;
+import net.minecraft.client.multiplayer.MultiPlayerGameMode;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+@Mixin(MultiPlayerGameMode.class)
+public class MultiPlayerGameModeMixin {
+
+    @Inject(method = "attack", at = @At("HEAD"))
+    private void bettersprint$attack(Player player, Entity target, CallbackInfo ci) {
+        BetterSprintClient.ENGINE.onAttack(!player.onGround());
+    }
+}
+'''
+FABRIC_MAIN_NOFAPI = '''package com.bogdantokarev.bettersprint;
+
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.phys.Vec3;
+
+@Environment(EnvType.CLIENT)
+public class BetterSprintClient implements ClientModInitializer {
+
+    public static final SprintEngine ENGINE = new SprintEngine();
+
+    @Override
+    public void onInitializeClient() {
+    }
+
+    public static void tick(Minecraft mc) {
+        LocalPlayer p = mc.player;
+        if (p == null || mc.isPaused()) return;
+        if (p.getAbilities().flying || p.isInWater() || p.isPassenger() || p.%(gliding)s) {
+            ENGINE.reset();
+            return;
+        }
+
+%(movement)s    }
+}
+'''
 FABRIC_MIXIN = """package com.bogdantokarev.bettersprint.mixin;
 
 import com.bogdantokarev.bettersprint.BetterSprintClient;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
+%(rollimport)s
 import net.minecraft.client.renderer.GameRenderer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -478,7 +545,7 @@ public class GameRendererMixin {
     private void bettersprint$roll(PoseStack poseStack, float partialTick, CallbackInfo ci) {
         double roll = BetterSprintClient.ENGINE.roll;
         if (roll != 0.0D) {
-            poseStack.mulPose(Axis.ZP.rotationDegrees((float) roll));
+            %(rollcall)s
         }
     }
 }
@@ -502,8 +569,7 @@ FABRIC_MOD_JSON = """{
   "depends": {
     "fabricloader": ">=0.15.0",
     "minecraft": "%(mcdep)s",
-    "java": ">=%(java)s",
-    "fabric-api": "*"
+    "java": ">=%(java)s"%(fapidep)s
   }
 }
 """
@@ -512,7 +578,7 @@ FABRIC_MIXINS_JSON = """{
   "required": true,
   "package": "com.bogdantokarev.bettersprint.mixin",
   "compatibilityLevel": "JAVA_%(java)s",
-  "client": ["GameRendererMixin"],
+  "client": [%(mixins)s],
   "injectors": { "defaultRequire": 1 },
   "minVersion": "0.8"
 }
@@ -670,7 +736,7 @@ repositories {
 dependencies {
     minecraft "com.mojang:minecraft:%(mc)s"
 %(mappings)s    %(dep)s "net.fabricmc:fabric-loader:%(loader)s"
-    %(dep)s "net.fabricmc.fabric-api:fabric-api:%(fapi)s"
+%(fapiline)s
 }
 
 processResources {
@@ -725,19 +791,34 @@ def neoforge(name, neoforge_ver, java, mcrange, neorange, mdg="2.0.78", gliding=
     wb(d / "src/main/resources/icon.png", ICON)
     wb(d / "src/main/resources/assets/bettersprint/icon.png", ICON)
 
-def fabric(name, mc, yarn, loader, fapi, loom, java, mcdep, gliding="isFallFlying()", newloom=False, mixinjava=None):
+def fabric(name, mc, yarn, loader, fapi, loom, java, mcdep, gliding="isFallFlying()", newloom=False, mixinjava=None, nofapi=False, newroll=False):
     d = base_project(name)
-    w(d / "src/main/java" / PKG / "BetterSprintClient.java", FABRIC_MAIN % {"movement": MOVEMENT_BODY, "gliding": gliding})
-    w(d / "src/main/java" / PKG / "mixin/GameRendererMixin.java", FABRIC_MIXIN)
+    main_tpl = FABRIC_MAIN_NOFAPI if nofapi else FABRIC_MAIN
+    w(d / "src/main/java" / PKG / "BetterSprintClient.java", main_tpl % {"movement": MOVEMENT_BODY, "gliding": gliding})
+    rollimport = ("import org.joml.Matrix4f;" if newroll else "import com.mojang.math.Axis;")
+    rollcall = ("poseStack.mulPose(new Matrix4f().rotationZ((float) Math.toRadians(roll)));" if newroll
+                else "poseStack.mulPose(Axis.ZP.rotationDegrees((float) roll));")
+    w(d / "src/main/java" / PKG / "mixin/GameRendererMixin.java",
+      FABRIC_MIXIN % {"rollimport": rollimport, "rollcall": rollcall})
+    mixin_names = ["GameRendererMixin"]
+    if nofapi:
+        w(d / "src/main/java" / PKG / "mixin/MinecraftMixin.java", MIXIN_TICK)
+        w(d / "src/main/java" / PKG / "mixin/MultiPlayerGameModeMixin.java", MIXIN_ATTACK)
+        mixin_names += ["MinecraftMixin", "MultiPlayerGameModeMixin"]
     w(d / "build.gradle", BUILD_FABRIC % {
         "name": name, "version": MOD_VERSION, "mc": mc, "loader": loader, "fapi": fapi, "loom": loom,
         "java": java, "author": AUTHOR,
         "loomid": "net.fabricmc.fabric-loom" if newloom else "fabric-loom",
         "dep": "implementation" if newloom else "modImplementation",
+        "fapiline": "" if nofapi else ('    %s "net.fabricmc.fabric-api:fabric-api:%s"'
+                                       % ("implementation" if newloom else "modImplementation", fapi)),
         "mappings": "" if newloom else "    mappings loom.officialMojangMappings()\n"})
     w(d / "src/main/resources/fabric.mod.json", FABRIC_MOD_JSON % {
-        "version": "${version}", "desc": DESC, "author": AUTHOR, "mcdep": mcdep, "java": java})
-    w(d / "src/main/resources/bettersprint.mixins.json", FABRIC_MIXINS_JSON % {"java": mixinjava or java})
+        "version": "${version}", "desc": DESC, "author": AUTHOR, "mcdep": mcdep, "java": java,
+        "fapidep": "" if nofapi else ',\n    "fabric-api": "*"'})
+    w(d / "src/main/resources/bettersprint.mixins.json",
+      FABRIC_MIXINS_JSON % {"java": mixinjava or java,
+                            "mixins": ", ".join('"%s"' % m for m in mixin_names)})
     wb(d / "src/main/resources/assets/bettersprint/icon.png", ICON)
 
 forge_modern("1.20.1-forge", "1.20.1", "1.20.1-47.3.0", 17, "[1.20.1,1.20.2)", "[47,)")
@@ -751,8 +832,8 @@ neoforge("26.3-neoforge", "26.3.+", 25, "[26.3,)", "[26.3.0,)",
 
 fabric("1.20.1-fabric", "1.20.1", None, "0.16.9", "0.92.2+1.20.1", "1.6-SNAPSHOT", 17, ">=1.20.1")
 fabric("1.21.1-fabric", "1.21.1", None, "0.16.9", "0.116.17+1.21.1", "1.7-SNAPSHOT", 21, ">=1.21.1")
-fabric("1.21.11-fabric", "1.21.11", None, "0.19.5", "0.141.6+1.21.11", "1.18-SNAPSHOT", 21, ">=1.21.11",
-       newloom=True)
+fabric("1.21.11-fabric", "1.21.11", None, "0.19.5", None, "1.18-SNAPSHOT", 21, ">=1.21.11",
+       newloom=True, nofapi=True)
 fabric("26.3-fabric", "26.3", None, "0.19.5", "0.161.0+26.3", "1.18-SNAPSHOT", 25, ">=26.3",
-       newloom=True, mixinjava=21)
+       newloom=True, mixinjava=21, newroll=True)
 print("modern ok")
