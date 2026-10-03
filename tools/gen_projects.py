@@ -607,7 +607,11 @@ jar {
         )
     }
 }
-jar.finalizedBy('reobfJar')
+afterEvaluate {
+    if (tasks.findByName('reobfJar') != null) {
+        jar.finalizedBy('reobfJar')
+    }
+}
 """
 
 BUILD_NEOFORGE = """plugins {

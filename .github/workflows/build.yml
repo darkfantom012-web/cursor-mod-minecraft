@@ -53,7 +53,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         working-directory: versions/${{ matrix.target }}
         run: |
-          LOG=$(tail -c 9000 build.log 2>/dev/null || echo "no build.log")
+          LOG=$( { grep -nE "error:|warning: .*deprecat|Could not |FAILURE:|Caused by: [A-Za-z]" build.log | head -40; echo "---- what went wrong ----"; sed -n '/What went wrong/,/^\* Try/p' build.log | head -60; echo "---- tail ----"; tail -c 3000 build.log; } 2>/dev/null || echo "no build.log")
           printf '### %s failed (run %s)\n```\n%s\n```\n' "${{ matrix.target }}" "${{ github.run_id }}" "$LOG" > comment.md
           python3 -c "import json,os;print(json.dumps({'body':open('comment.md').read()}))" > comment.json
           gh api repos/${{ github.repository }}/issues/1/comments --input comment.json || true
