@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   build:
@@ -42,8 +43,23 @@ jobs:
           gradle-version: ${{ matrix.gradle }}
 
       - name: Build
+        id: build
         working-directory: versions/${{ matrix.target }}
-        run: gradle build --no-daemon --stacktrace
+        run: set -o pipefail; gradle build --no-daemon --stacktrace 2>&1 | tee build.log
+
+      - name: Publish failure log
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: versions/${{ matrix.target }}
+        run: |
+          {
+            echo "### ${{ matrix.target }} failed (run ${{ github.run_id }})"
+            echo '```'
+            tail -c 12000 build.log || echo "no log"
+            echo '```'
+          } > comment.md
+          gh api repos/${{ github.repository }}/issues/1/comments -f body=@comment.md ||           gh issue create --title "Build logs" --body "log sink" || true
 
       - name: Collect jar
         working-directory: versions/${{ matrix.target }}
