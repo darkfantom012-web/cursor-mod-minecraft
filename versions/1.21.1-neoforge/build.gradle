@@ -12,7 +12,7 @@ java {
 }
 
 neoForge {
-    version = '21.1.+'
+    version = (project.findProperty('neoforgeVersion') ?: '21.1.+').toString()
     runs {
         client { client() }
     }

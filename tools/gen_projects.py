@@ -192,7 +192,7 @@ MCMOD_INFO = """[
 """
 
 BUILD_1710 = """plugins {
-    id 'com.gtnewhorizons.retrofuturagradle' version '1.3.35'
+    id 'com.gtnewhorizons.retrofuturagradle' version '[1.3,2.0)'
 }
 
 group = 'com.bogdantokarev'
@@ -289,6 +289,7 @@ def legacy_project(name, mc, main_src, build):
     w(d / "settings.gradle",
       "pluginManagement {\n    repositories {\n        gradlePluginPortal()\n"
       "        maven { url = 'https://maven.minecraftforge.net' }\n"
+      "        maven { url = 'https://nexus.gtnewhorizons.com/repository/public/' }\n"
       "        maven { url = 'https://maven.neoforged.net/releases' }\n    }\n}\n"
       "rootProject.name = 'BetterSprint-%s'\n" % name)
     w(d / "gradle.properties", "org.gradle.jvmargs=-Xmx3G\norg.gradle.daemon=false\n")
@@ -558,6 +559,7 @@ PROPS = "org.gradle.jvmargs=-Xmx3G\norg.gradle.daemon=false\n"
 SETTINGS = """pluginManagement {
     repositories {
         gradlePluginPortal()
+        maven { url = 'https://nexus.gtnewhorizons.com/repository/public/' }
         maven { url = 'https://maven.minecraftforge.net' }
         maven { url = 'https://maven.neoforged.net/releases' }
         maven { url = 'https://maven.fabricmc.net/' }
@@ -628,7 +630,7 @@ java {
 }
 
 neoForge {
-    version = '%(neoforge)s'
+    version = (project.findProperty('neoforgeVersion') ?: '%(neoforge)s').toString()
     runs {
         client { client() }
     }
