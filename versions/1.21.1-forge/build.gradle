@@ -1,0 +1,42 @@
+plugins {
+    id 'net.minecraftforge.gradle' version '[6.0.24,6.2)'
+}
+
+group = 'com.bogdantokarev'
+archivesBaseName = 'BetterSprint-1.21.1-forge'
+version = '1.0.0'
+
+java {
+    toolchain { languageVersion.set(JavaLanguageVersion.of(21)) }
+}
+
+minecraft {
+    mappings channel: 'official', version: '1.21.1'
+    copyIdeResources = true
+    runs {
+        client {
+            workingDirectory project.file('run')
+            mods { bettersprint { source sourceSets.main } }
+        }
+    }
+}
+
+dependencies {
+    minecraft 'net.minecraftforge:forge:1.21.1-52.0.40'
+}
+
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('META-INF/mods.toml') { expand 'version': project.version }
+}
+
+jar {
+    manifest {
+        attributes(
+            'Implementation-Title': 'Better Sprint',
+            'Implementation-Version': project.version,
+            'Implementation-Vendor': 'Bogdan_Tokarev'
+        )
+    }
+}
+jar.finalizedBy('reobfJar')

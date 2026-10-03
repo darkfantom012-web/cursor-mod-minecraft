@@ -1,0 +1,17 @@
+[
+  {
+    "modid": "bettersprint",
+    "name": "Better Sprint",
+    "description": "Running now builds up momentum: +10% speed per second of sprinting up to 8.612 m/s, jump-friendly, with inertia slides, air-hit momentum keeping and camera tilt on sharp turns.",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "logoFile": "assets/bettersprint/icon.png",
+    "authorList": ["Bogdan_Tokarev"],
+    "credits": "",
+    "url": "",
+    "updateUrl": "",
+    "parent": "",
+    "screenshots": [],
+    "dependencies": []
+  }
+]

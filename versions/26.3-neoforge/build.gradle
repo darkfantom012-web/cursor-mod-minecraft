@@ -1,0 +1,37 @@
+plugins {
+    id 'net.neoforged.moddev' version '[2.0,3.0)'
+}
+
+group = 'com.bogdantokarev'
+version = '1.0.0'
+
+base { archivesName = 'BetterSprint-26.3-neoforge' }
+
+java {
+    toolchain { languageVersion.set(JavaLanguageVersion.of(21)) }
+}
+
+neoForge {
+    version = '26.3.+'
+    runs {
+        client { client() }
+    }
+    mods {
+        bettersprint { sourceSet sourceSets.main }
+    }
+}
+
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('META-INF/neoforge.mods.toml') { expand 'version': project.version }
+}
+
+jar {
+    manifest {
+        attributes(
+            'Implementation-Title': 'Better Sprint',
+            'Implementation-Version': project.version,
+            'Implementation-Vendor': 'Bogdan_Tokarev'
+        )
+    }
+}

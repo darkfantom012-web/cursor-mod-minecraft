@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "bettersprint",
+  "version": "${version}",
+  "name": "Better Sprint",
+  "description": "Running now builds up momentum: +10% speed per second of sprinting up to 8.612 m/s, jump-friendly, with inertia slides, air-hit momentum keeping and camera tilt on sharp turns.",
+  "authors": ["Bogdan_Tokarev"],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/bettersprint/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["com.bogdantokarev.bettersprint.BetterSprintClient"]
+  },
+  "mixins": ["bettersprint.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "minecraft": ">=1.20.1",
+    "java": ">=17",
+    "fabric-api": "*"
+  }
+}

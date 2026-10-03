@@ -1,0 +1,28 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "MIT"
+issueTrackerURL = ""
+
+[[mods]]
+modId = "bettersprint"
+version = "${version}"
+displayName = "Better Sprint"
+authors = "Bogdan_Tokarev"
+logoFile = "icon.png"
+description = '''
+Running now builds up momentum: +10% speed per second of sprinting up to 8.612 m/s, jump-friendly, with inertia slides, air-hit momentum keeping and camera tilt on sharp turns.
+'''
+
+[[dependencies.bettersprint]]
+    modId = "neoforge"
+    mandatory = true
+    versionRange = "[21.11.0,)"
+    ordering = "NONE"
+    side = "CLIENT"
+
+[[dependencies.bettersprint]]
+    modId = "minecraft"
+    mandatory = true
+    versionRange = "[1.21.11,1.21.12)"
+    ordering = "NONE"
+    side = "CLIENT"
